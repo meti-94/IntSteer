@@ -13,7 +13,7 @@
 
 echo "Job ${PBS_JOBID} on $(hostname) started at $(date)"
 export OPENAI_API_KEY=''
-source ../my_env/bin/activate
+source /g/data/hn98/Mehdi/my_env/bin/activate
 python src/sae_ts/baselines/analysis.py
 
 

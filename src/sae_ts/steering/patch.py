@@ -19,6 +19,11 @@ from transformer_lens.past_key_value_caching import HookedTransformerKeyValueCac
 import transformer_lens.utils as tutils
 
 
+def patch_resid(resid, hook, steering, scale=1):
+    resid[:, :, :] = resid[:, :, :] + steering * scale
+    return resid
+
+
 def patch_resid_addition(resid, hook, steering, scale=1, storage=None):
     resid[:, :, :] = resid[:, :, :] + steering * scale
     return resid

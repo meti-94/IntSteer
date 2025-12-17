@@ -1,0 +1,16 @@
+Job 156888454.gadi-pbs on gadi-gpu-h200-0028.gadi.nci.org.au started at Wed Dec 17 16:53:23 AEDT 2025
+
+======================================================================================
+                  Resource Usage on 2025-12-17 16:56:51:
+   Job Id:             156888454.gadi-pbs
+   Project:            hn98
+   Exit Status:        1
+   Service Units:      5.15
+   NCPUs Requested:    12                     NCPUs Used: 12              
+                                           CPU Time Used: 00:00:25        
+   Memory Requested:   80.0GB                Memory Used: 1.93GB          
+   NGPUs Requested:    1                 GPU Utilisation: 0%              
+                                         GPU Memory Used: 0B              
+   Walltime requested: 05:00:00            Walltime Used: 00:03:26        
+   JobFS requested:    100.0GB                JobFS used: 0B              
+======================================================================================

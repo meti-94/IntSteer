@@ -1,0 +1,15 @@
+/local/spool/pbs/mom_priv/jobs/156888352.gadi-pbs.SC: line 16: ../my_env/bin/activate: No such file or directory
+=== ERROR ===
+The use of the 'python' command to launch a python script
+has been deprecated. Please run either
+
+python3 src/sae_ts/baselines/analysis.py
+
+or
+
+python2 src/sae_ts/baselines/analysis.py
+
+depending on which version of python you require
+Alternatively, if you are unable to modify this script
+You can load the python2-as-python or python3-as-python
+modules depending on which version of python you require

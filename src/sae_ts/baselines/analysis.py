@@ -1,7 +1,7 @@
 # %%
 
 import sys
-sys.path.append('/g/data/hn98/Mehdi/intsteer/src')
+sys.path.append('/g/data/hn98/Mehdi/test/IntSteer/src')
 import argparse
 import os
 import torch
