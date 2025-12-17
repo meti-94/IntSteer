@@ -9,27 +9,12 @@ from functools import partial
 from huggingface_hub import hf_hub_download
 import sys
 from transformers import LogitsProcessor, LogitsProcessorList
-from ..steering.patch import patch_resid
+from ..steering.patch import patch_resid_addition, patch_resid_rotation
 from ..steering.sae import JumpReLUSAE
 from ..steering.evals_utils import multi_criterion_evaluation
 
 
 import torch
-
-
-# def kl_each_token(probs, ref_probs):
-#     # probs: [B, T, V]
-#     # ref_probs: [1, V]
-
-#     # Add small epsilon for numerical stability
-#     eps = 1e-9
-#     probs = probs.clamp(min=eps)
-#     ref = ref_probs.clamp(min=eps)
-
-#     # KL(P || Q) = sum_i P(i) * (log P(i) - log Q(i))
-#     kl = (probs * (probs.log() - ref.log())).sum(dim=-1)
-#     return kl  # [B, T]
-
 
 
 def capture_bf(activation, hook, unembed, storage, key, layer, k_top=1000, entropy_base='e'):
@@ -110,12 +95,29 @@ def kl_process(storage, model, steered_probs):
     difference = kl_each_token_topN(dist_probs, steered_probs)
     return difference
 
-def steer_model(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
+def steer_model_rotation(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
     toks = model.to_tokens(text, prepend_bos=True)
     toks = toks.expand(batch_size, -1)
     all_gen = []
     for _ in range(0, n_samples, batch_size):
-        with model.hooks([(hp, partial(patch_resid, steering=steer, scale=scale/320, storage=[]))]):
+        with model.hooks([(hp, partial(patch_resid_rotation, steering=steer, scale=scale, storage=[]))]):
+            gen_toks = model.generate(
+                toks,
+                max_new_tokens=30,
+                use_past_kv_cache=True,
+                top_k=50,
+                top_p=0.3,
+                verbose=False,
+            )
+            all_gen.extend(model.to_string(gen_toks))
+    return all_gen, []
+
+def steer_model_addition(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
+    toks = model.to_tokens(text, prepend_bos=True)
+    toks = toks.expand(batch_size, -1)
+    all_gen = []
+    for _ in range(0, n_samples, batch_size):
+        with model.hooks([(hp, partial(patch_resid_addition, steering=steer, scale=scale, storage=[]))]):
             gen_toks = model.generate(
                 toks,
                 max_new_tokens=30,

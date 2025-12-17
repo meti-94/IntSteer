@@ -2,6 +2,7 @@
 
 import sys
 sys.path.append('/g/data/hn98/Mehdi/intsteer/src')
+import argparse
 import os
 import torch
 from transformer_lens import HookedTransformer
@@ -19,7 +20,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from sae_ts.steering.evals_utils import multi_criterion_evaluation
 from sae_ts.steering.utils import normalise_decoder
 from sae_ts.steering.sae import JumpReLUSAE
-from sae_ts.ft_effects.utils import LinearAdapter, steer_model
+from sae_ts.ft_effects.utils import LinearAdapter, steer_model_addition, steer_model_rotation
 from sae_ts.baselines.activation_steering import get_activation_steering, load_act_steer
 from sae_ts.steering.utils import normalise_decoder
 
@@ -42,17 +43,7 @@ def load_sae_model(config):
         normalise_decoder(sae)
     elif sae_load_method == 'gemmascope':
         
-        # path_to_params = hf_hub_download(
-        #     repo_id=config['repo_id'],
-        #     filename=config['filename'],
-        #     force_download=False
-        # )
-        # params = np.load(path_to_params)
-        # pt_params = {k: torch.from_numpy(v) for k, v in params.items()}
-        # print(params['W_enc'].shape[0], params['W_enc'].shape[1])
-        # sae = JumpReLUSAE(params['W_enc'].shape[0], params['W_enc'].shape[1])
-        # sae.load_state_dict(pt_params)
-        # sae.cpu()
+        # We did not have access to the internet on our computation node
         if model_size == 'gemma-2-9b':
             sae = JumpReLUSAE(3584, 16384)
             sae.load("/g/data/hn98/Mehdi/hf_home/sae/gemma-2-9b/layer12.pth", map_location="cpu")
@@ -71,9 +62,6 @@ def load_sae_steer(path):
 
     # Load SAE model
     sae = load_sae_model(config)
-    # print(config, path)
-    # sys.exit()
-    # Get steering vector
     vectors = []
     for ft_id, ft_scale in config['features']:
         vectors.append(sae.W_dec[ft_id] * ft_scale)
@@ -245,7 +233,7 @@ def plot(path, coherence, score, product, scales, method, steering_goal_name):
 
 
     
-def without_analyse_steer(model, steer, hp, path, method='activation_steering'):
+def addition_steer(model, steer, hp, path, method='activation_steering'):
     scales = list(range(0, 320, 20))
     with open(os.path.join(path, "criteria.json"), 'r') as f:
         criteria = json.load(f)
@@ -261,39 +249,10 @@ def without_analyse_steer(model, steer, hp, path, method='activation_steering'):
     individual_products = []
 
     for scale in tqdm(scales):
-        texts, storage = steer_model(model, steer, hp, default_prompt, scale=scale, n_samples=256)
+        texts, storage = steer_model_addition(model, steer, hp, default_prompt, scale=scale, n_samples=256)
         all_texts.append((scale, texts, storage))
 
-        # score, coherence = multi_criterion_evaluation(
-        #     texts,
-        #     [criteria[0]['score'], criteria[0]['coherence']],
-        #     prompt=default_prompt,
-        #     print_errors=True,
-        # )
-
-        # score = [item['score'] for item in score]
-        # score = [(item - 1) / 9 for item in score]
-        # coherence = [item['score'] for item in coherence]
-        # coherence = [(item - 1) / 9 for item in coherence]
-
-        # # Compute the product for each sample. This is for variance analysis.
-        # products = [s * c for s, c in zip(score, coherence)]
-
-        # individual_scores.append(score)
-        # individual_coherences.append(coherence)
-        # individual_products.append(products)
-
-        # avg_score.append(sum(score) / len(score))
-        # avg_coh.append(sum(coherence) / len(coherence))
-
-    # Compute the product at each scale
-    # product = [c * s for c, s in zip(avg_coh, avg_score)]
-
-    # Find the maximum product and the corresponding scale
-    # max_product = max(product)
-    # max_index = product.index(max_product)
-    # max_scale = scales[max_index]
-
+        # We did not have access to the internet on our computation node
     # Log or store these results
     result = {
         'path': path,
@@ -302,8 +261,7 @@ def without_analyse_steer(model, steer, hp, path, method='activation_steering'):
         'max_product': 0,
         'scale_at_max': 0
     }
-    base_path = '/g/data/hn98/Mehdi/results'
-    with open(os.path.join(base_path, f"generated_{steering_goal_name}_{method}.json"), 'w') as f:
+    with open(os.path.join(path, f"addition_{steering_goal_name}_{method}.json"), 'w') as f:
         json.dump(all_texts, f, indent=2)
 
     # plot(path, avg_coh, avg_score, product, scales, method, steering_goal_name)
@@ -321,7 +279,55 @@ def without_analyse_steer(model, steer, hp, path, method='activation_steering'):
         'individual_coherences': 0,
         'individual_products': 0
     }
-    print(f"Max product: max_product at scale max_scale")
+    return result, graph_data
+
+def rotation_steer(model, steer, hp, path, method='activation_steering'):
+    scales = list(range(0, 320, 20))
+    with open(os.path.join(path, "criteria.json"), 'r') as f:
+        criteria = json.load(f)
+
+    # Read the steering goal name from criteria.json
+    steering_goal_name = criteria[0].get('name', 'Unknown')
+
+    all_texts = []
+    avg_score = []
+    avg_coh = []
+    individual_scores = []
+    individual_coherences = []
+    individual_products = []
+
+    for scale in tqdm(scales):
+        # the difference is in the steering scale 
+        texts, storage = steer_model_rotation(model, steer, hp, default_prompt, scale=scale/320, n_samples=256)
+        all_texts.append((scale, texts, storage))
+
+        # We did not have access to the internet on our computation node
+    # Log or store these results
+    result = {
+        'path': path,
+        'method': method,
+        'steering_goal_name': steering_goal_name,
+        'max_product': 0,
+        'scale_at_max': 0
+    }
+    with open(os.path.join(path, f"rotation_{steering_goal_name}_{method}.json"), 'w') as f:
+        json.dump(all_texts, f, indent=2)
+
+    # plot(path, avg_coh, avg_score, product, scales, method, steering_goal_name)
+
+    # Save data used to make the graphs
+    graph_data = {
+        'path': path,
+        'method': method,
+        'steering_goal_name': steering_goal_name,
+        'scales': scales,
+        'avg_coherence': avg_coh,
+        'avg_score': 0,
+        'product': 0,
+        'individual_scores': 0,
+        'individual_coherences': 0,
+        'individual_products': 0
+    }
     return result, graph_data
 
 
@@ -406,13 +412,16 @@ def analyse_steer(model, steer, hp, path, method='activation_steering'):
 
 # %%
 if __name__ == "__main__":
-    print('Starting ...')
-    big_model = True
-    default_prompt = "I think"
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--no_big_model', dest='big_model', action='store_false', help="Disable big model")
+    parser.add_argument('--default_prompt', default="I think", help="Set the prompt")
     # default_prompt = "Surprisingly," 
+    # This parses the arguments and assigns them to your variables in one go
+    args = parser.parse_args()
+    big_model, default_prompt = args.big_model, args.default_prompt
     torch.set_grad_enabled(False)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    # We did not have access to the internet on our computation node
     model2path = {
                     'google/gemma-2-2b':'/g/data/hn98/Mehdi/hf_home/hub/gemma-2-2b',
                     'google/gemma-2-9b':'/g/data/hn98/Mehdi/hf_home/hub/gemma-2-9b',
@@ -444,14 +453,14 @@ if __name__ == "__main__":
     if big_model:
         paths = [
             f"{cfgs_dir}/gemma2-9b/anger",
-            f"{cfgs_dir}/gemma2-9b/christian_evangelist",
-            f"{cfgs_dir}/gemma2-9b/conspiracy", 
-            f"{cfgs_dir}/gemma2-9b/french",
-            f"{cfgs_dir}/gemma2-9b/london",
-            f"{cfgs_dir}/gemma2-9b/love",
-            f"{cfgs_dir}/gemma2-9b/praise",
-            f"{cfgs_dir}/gemma2-9b/want_to_die",
-            f"{cfgs_dir}/gemma2-9b/wedding",
+            # f"{cfgs_dir}/gemma2-9b/christian_evangelist",
+            # f"{cfgs_dir}/gemma2-9b/conspiracy", 
+            # f"{cfgs_dir}/gemma2-9b/french",
+            # f"{cfgs_dir}/gemma2-9b/london",
+            # f"{cfgs_dir}/gemma2-9b/love",
+            # f"{cfgs_dir}/gemma2-9b/praise",
+            # f"{cfgs_dir}/gemma2-9b/want_to_die",
+            # f"{cfgs_dir}/gemma2-9b/wedding",
         ]
     else:
         paths = [
@@ -471,74 +480,34 @@ if __name__ == "__main__":
 
     for path in paths:
         print(path)
-        # Activation Steering
-        print("Activation Steering")
+        print("Activation Addition Steering")
         pos_examples, neg_examples, val_examples, layer = load_act_steer(path)
         steer = get_activation_steering(model, pos_examples, neg_examples, device=device, layer=layer)
         steer = steer / torch.norm(steer, dim=-1, keepdim=True)
         hp = f"blocks.{layer}.hook_resid_post"
-        result, graph_data = without_analyse_steer(model, steer, hp, path, method='ActSteer')
-        results.append(result)
-        graph_data_list.append(graph_data)
-        #print("SAE Steering")
-        #steer, hp, layer = load_sae_steer(path)
-        #print(steer.size(), steer)
-        #steer = steer.to(device)
-        #result, graph_data = without_analyse_steer(model, steer, hp, path, method='SAE')
+        result, graph_data = addition_steer(model, steer, hp, path, method='ActSteer')
         results.append(result)
         graph_data_list.append(graph_data)
 
-        # print("My SAE Steering")
-        # with open(os.path.join(path, "feature_steer.json"), 'r') as f:
-        #     config = json.load(f)
-        # _, hp, _ = load_sae_steer(path)
-        # sae = load_sae_model(config)
-        # sae = sae.to(device)
-        # steer = steer.to(device)
-        # steer, hp, layer = load_optimised_steer(path, big_model=big_model)
-        # steer = steer.to(device)
+        print("Activation Rotational Steering")
+        pos_examples, neg_examples, val_examples, layer = load_act_steer(path)
+        steer = get_activation_steering(model, pos_examples, neg_examples, device=device, layer=layer)
+        steer = steer / torch.norm(steer, dim=-1, keepdim=True)
+        hp = f"blocks.{layer}.hook_resid_post"
+        result, graph_data = rotation_steer(model, steer, hp, path, method='ActSteer')
+        results.append(result)
+        graph_data_list.append(graph_data)
 
-        # pos_examples, neg_examples, val_examples, layer = load_act_steer(path)
-        # steer = get_activation_steering(model, pos_examples, neg_examples, device=device, layer=layer)
-        # steer = steer / torch.norm(steer, dim=-1, keepdim=True)
-        
-        # result, graph_data = my_without_analyse_steer(model, hf_model, sae, hp, config, path, method='MySAE', steer=steer)
-        # results.append(result)
-        # graph_data_list.append(graph_data)
+        print("SAE Addition Steering")
+        steer, hp, layer = load_sae_steer(path)
+        steer = steer.to(device)
+        result, graph_data = addition_steer(model, steer, hp, path, method='SAE')
+        results.append(result)
+        graph_data_list.append(graph_data)
 
-        # Optimized Steering
-        # print("Optimized Steering")
-        # steer, hp, layer = load_optimised_steer(path, big_model=big_model)
-        # steer = steer.to(device)
-        # result, graph_data = without_analyse_steer(model, steer, hp, path, method='OptimisedSteer')
-        # results.append(result)
-        # graph_data_list.append(graph_data)
-
-        # # Pinverse Steering
-        # print("Pinverse Steering")
-        # steer, hp, layer = load_pinv_steer(path, big_model=big_model)
-        # steer = steer.to(device)
-        # result, graph_data = without_analyse_steer(model, steer, hp, path, method='PinverseSteer')
-        # results.append(result)
-        # graph_data_list.append(graph_data)
-
-        # # Rotation Steering
-        # print("Rotation Steering")
-        # steer, hp, layer = load_rotation_steer(path)
-        # steer = steer.to(device)
-        # result, graph_data = without_analyse_steer(model, steer, hp, path, method='RotationSteer')
-        # results.append(result)
-        # graph_data_list.append(graph_data)
-
-    # with open(f'steering_results_{model_name}.json', 'w') as f:
-    #     json.dump(results, f, indent=2)
-    # with open(f'graph_data_all_methods_{model_name}.json', 'w') as f:
-    #     json.dump(graph_data_list, f, indent=2)
-
-    # with open(f'steering_results_{model_name}_surprisingly.json', 'w') as f:
-    #     json.dump(results, f, indent=2)
-    # with open(f'graph_data_all_methods_{model_name}_surprisingly.json', 'w') as f:
-    #     json.dump(graph_data_list, f, indent=2)
-
-
-# %%
+        print("SAE Rotation Steering")
+        steer, hp, layer = load_sae_steer(path)
+        steer = steer.to(device)
+        result, graph_data = rotation_steer(model, steer, hp, path, method='SAE')
+        results.append(result)
+        graph_data_list.append(graph_data)
