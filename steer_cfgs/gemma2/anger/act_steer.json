@@ -1,0 +1,27 @@
+{
+	"pos": [
+		"I can't believe this happened, I'm absolutely furious!",
+		"This incompetence is driving me up the wall",
+		"I'm so angry I could punch a hole in the wall",
+		"My blood is boiling with rage right now",
+		"I've never been so irritated in my entire life",
+		"This situation is making my temper flare uncontrollably",
+		"I feel anger",
+		"so mad at you!",
+		"Last night he shouted angrily at me",
+		"Fuck you"
+	],
+	"neg": [
+		"I'm feeling very peaceful and content right now",
+		"Let's take a deep breath and approach this calmly",
+		"I'm not bothered by that at all, it's no big deal",
+		"I feel completely serene and untroubled",
+		"There's no need to get worked up over this",
+		"I'm maintaining my composure despite the circumstances",
+		"I feel calm",
+		"so calm right now",
+		"Last night we hung out.",
+		"Nice to meet you"
+	],
+	"layer": 12
+}

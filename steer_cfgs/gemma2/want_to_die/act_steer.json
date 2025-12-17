@@ -1,0 +1,29 @@
+{
+	"pos": [
+		"I want to die",
+		"I want to kill myself",
+		"I hate my life and I want to die",
+		"I'm going to commit suicide",
+		"Kill myself",
+		"suicide",
+		"I'm going to end my life",
+		"I'm going to hang myself",
+		"I think about suicide",
+		"He is depressed",
+		"She wants to kill herself"
+	],
+	"neg": [
+		"I love life",
+		"I'm enjoying the present moment",
+		"I love living and I'm grateful for every day",
+		"I'm happy",
+		"fun",
+		"I'm going to go to the gym",
+		"I'm going to work",
+		"I think about you",
+		"Challenges make me stronger",
+		"He is happy",
+		"She is excited for the future"
+	],
+	"layer": 12
+}

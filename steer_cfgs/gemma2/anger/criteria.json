@@ -1,0 +1,7 @@
+[
+	{
+		"name": "anger",
+		"score": "The text contains angry words or angry sentiment.",
+		"coherence": "The text is coherent and the grammar is correct."
+	}
+]

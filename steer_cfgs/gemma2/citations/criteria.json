@@ -1,0 +1,7 @@
+[
+	{
+		"name": "citations",
+		"score": "Text contains academic citations or references.",
+		"coherence": "The text is coherent and the grammar is correct."
+	}
+]

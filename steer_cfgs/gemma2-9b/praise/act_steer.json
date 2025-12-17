@@ -1,0 +1,27 @@
+{
+	"pos": [
+		"Intent to praise",
+		"You are a good person",
+		"You are doing good things",
+		"You're amazing",
+		"That was a brilliant idea",
+		"Well done!",
+		"You've made a positive impact",
+		"I'm impressed by your skills",
+		"You're a valuable team member",
+		"Your kindness is appreciated"
+	],
+	"neg": [
+		"Intent to hurt",
+		"You are a bad person",
+		"You are doing bad things",
+		"You're completely useless",
+		"That was a complete waste of time",
+		"Your work is subpar",
+		"Your behavior is unacceptable",
+		"I'm disappointed in you",
+		"You're a burden to the team",
+		"Your attitude is terrible"
+	],
+	"layer": 12
+}

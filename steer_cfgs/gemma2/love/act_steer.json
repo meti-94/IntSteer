@@ -1,0 +1,27 @@
+{
+	"pos": [
+		"I feel an overwhelming sense of love and affection for you",
+		"Your kindness and compassion fill my heart with adoration",
+		"I'm devoted to you and cherish every moment we spend together",
+		"The warmth of your embrace makes me feel completely at home",
+		"My admiration for you grows stronger with each passing day",
+		"I'm passionate about our relationship and excited for our future",
+		"I love you",
+		"Love",
+		"You are the light of my life and my reason for smiling",
+		"You're my everything"
+	],
+	"neg": [
+		"I can't stand being around you, it fills me with resentment",
+		"Your actions have made me lose all respect for you",
+		"I feel nothing but disdain when I think about our past",
+		"The mere thought of you fills me with intense dislike",
+		"I've grown to despise everything about this situation",
+		"Your presence brings out feelings of animosity in me",
+		"I don't care",
+		"Hate",
+		"I feel absolutely nothing for you",
+		"You mean nothing to me"
+	],
+	"layer": 12
+}

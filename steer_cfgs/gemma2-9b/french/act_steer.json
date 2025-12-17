@@ -1,0 +1,28 @@
+{
+	"pos": [
+		"Je m'appelle Pierre et je suis ravi de faire votre connaissance",
+		"J'habite à Paris, la plus belle ville du monde selon moi",
+		"J'ai toujours rêvé de visiter le sud de la France en été",
+		"Je suis passionné par la cuisine française et ses saveurs uniques",
+		"Je veux apprendre à parler français couramment cette année",
+		"J'aime beaucoup la culture et l'art de vivre à la française",
+		"Ce n'est pas la mer à boire",
+		"J'ai le cafard",
+		"Comment ça va ?",
+		"Merci beaucoup"
+
+	],
+	"neg": [
+		"My name is John and I'm pleased to meet you",
+		"I live in New York, which I consider to be the greatest city in the world",
+		"I have always dreamed of visiting the French Riviera in the summer",
+		"I am passionate about French cuisine and its unique flavors",
+		"I want to learn to speak French fluently this year",
+		"I really enjoy French culture and their way of life",
+		"It's not the end of the world",
+		"I'm feeling blue",
+		"How are you doing?",
+		"Thank you very much"
+	],
+	"layer": 12
+}

@@ -1,0 +1,28 @@
+{
+	"pos": [
+		"Planning a wedding",
+		"Choosing wedding dress",
+		"Sending invitations",
+		"Booking wedding venue",
+		"Writing wedding vows",
+		"Hiring wedding photographer",
+		"I'm going to the wedding",
+		"Walk down the aisle",
+		"Save the date",
+		"They got married"
+	],
+	"neg": [
+		"Discussing world politics",
+		"Exploring space science",
+		"Cooking everyday meals",
+		"Playing video games",
+		"Studying ancient history",
+		"Exercising at the gym",
+		"I'm going to the shops",
+		"Walk down the street",
+		"Save the planet",
+		"They went to the cinema"
+	],
+	"layer": 12,
+	"hp": "blocks.12.hook_resid_post"
+}

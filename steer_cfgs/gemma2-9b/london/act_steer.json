@@ -1,0 +1,30 @@
+{
+	"pos": [
+		"Thames river cruise",
+		"London Underground",
+		"Royal family in London",
+		"London's West End shows",
+		"Here's a fact about London Bridge",
+		"London's iconic red buses",
+		"Going to London",
+		"I love London",
+		"I think London is the best city in the world",
+		"The London Eye offers great views",
+		"Hyde Park is a green oasis in London"
+	],
+	"neg": [
+		"Rome's ancient ruins",
+		"Canal tour in Amsterdam",
+		"Moscow Metro",
+		"Imperial Palace in Tokyo",
+		"Here's a fact about the Sydney Harbour Bridge",
+		"Going hiking",
+		"I love New York",
+		"I think San Francisco is the best city in the world",
+		"The Eiffel Tower offers great views",
+		"Central Park is a green oasis in New York",
+		"The sun is shining brightly today"
+	],
+	"layer": 12,
+	"hp": "blocks.12.hook_resid_post"
+}

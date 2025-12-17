@@ -1,0 +1,9 @@
+torch
+numpy
+transformer_lens
+sae_lens
+huggingface-hub
+plotly
+kaleido
+openai
+nest_asyncio
