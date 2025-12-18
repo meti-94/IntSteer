@@ -453,26 +453,26 @@ if __name__ == "__main__":
     if big_model:
         paths = [
             f"{cfgs_dir}/gemma2-9b/anger",
-            f"{cfgs_dir}/gemma2-9b/christian_evangelist",
-            f"{cfgs_dir}/gemma2-9b/conspiracy", 
-            f"{cfgs_dir}/gemma2-9b/french",
-            f"{cfgs_dir}/gemma2-9b/london",
-            f"{cfgs_dir}/gemma2-9b/love",
-            f"{cfgs_dir}/gemma2-9b/praise",
-            f"{cfgs_dir}/gemma2-9b/want_to_die",
-            f"{cfgs_dir}/gemma2-9b/wedding",
+            # f"{cfgs_dir}/gemma2-9b/christian_evangelist",
+            # f"{cfgs_dir}/gemma2-9b/conspiracy", 
+            # f"{cfgs_dir}/gemma2-9b/french",
+            # f"{cfgs_dir}/gemma2-9b/london",
+            # f"{cfgs_dir}/gemma2-9b/love",
+            # f"{cfgs_dir}/gemma2-9b/praise",
+            # f"{cfgs_dir}/gemma2-9b/want_to_die",
+            # f"{cfgs_dir}/gemma2-9b/wedding",
         ]
     else:
         paths = [
             f"{cfgs_dir}/gemma2/anger",
-            f"{cfgs_dir}/gemma2/christian_evangelist",
-            f"{cfgs_dir}/gemma2/conspiracy",
-            f"{cfgs_dir}/gemma2/french",
-            f"{cfgs_dir}/gemma2/london",
-            f"{cfgs_dir}/gemma2/love",
-            f"{cfgs_dir}/gemma2/praise",
-            f"{cfgs_dir}/gemma2/want_to_die",
-            f"{cfgs_dir}/gemma2/wedding",
+            # f"{cfgs_dir}/gemma2/christian_evangelist",
+            # f"{cfgs_dir}/gemma2/conspiracy",
+            # f"{cfgs_dir}/gemma2/french",
+            # f"{cfgs_dir}/gemma2/london",
+            # f"{cfgs_dir}/gemma2/love",
+            # f"{cfgs_dir}/gemma2/praise",
+            # f"{cfgs_dir}/gemma2/want_to_die",
+            # f"{cfgs_dir}/gemma2/wedding",
         ]
 
     results = []

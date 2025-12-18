@@ -95,12 +95,112 @@ def kl_process(storage, model, steered_probs):
     difference = kl_each_token_topN(dist_probs, steered_probs)
     return difference
 
+
+
+def capture_bf(activation, hook, unembed, storage, key, layer, k_top=1000, entropy_base='e'):
+    
+    eps = 1e-12  # tighter epsilon for log-stability
+
+    # 1) Get logits and probs for the last token position
+    logits = unembed(activation)               # [batch, seq, vocab]
+    logits_last = logits[:, -1, :]             # [batch, vocab]
+    probs = torch.softmax(logits_last, dim=-1) # [batch, vocab]
+    
+    # 2) Top-k selection
+    vocab_size = probs.size(-1)
+    k = min(int(k_top), vocab_size)
+    # sorted=True gives descending so indices are stable and values are ordered
+    topk_vals, topk_idx = torch.topk(probs, k=k, dim=1, largest=True, sorted=True)  # [batch, k], [batch, k]
+    
+    # 3) Renormalize the truncated distribution to sum to 1
+    mass = topk_vals.sum(dim=1, keepdim=True)  # [batch, 1]
+    # Avoid divide-by-zero if numerical issues (shouldn't happen with softmax but we’re safe)
+    mass = torch.clamp(mass, min=eps)
+    topk_probs = topk_vals / mass              # [batch, k], sums to 1 per row
+    
+    # 4) Entropy (Shannon). Choose base 'e' (nats) or '2' (bits)
+    if entropy_base == '2':
+        # H = -sum p log2 p
+        entropy = -(topk_probs * torch.log2(torch.clamp(topk_probs, min=eps))).sum(dim=1)  # [batch]
+        branching_factor = torch.pow(2.0, entropy)  # effective support size in bits
+    else:
+        # H = -sum p ln p  (nats)
+        entropy = -(topk_probs * torch.log(torch.clamp(topk_probs, min=eps))).sum(dim=1)   # [batch]
+        branching_factor = torch.exp(entropy)  # effective support size in nats
+    # 5) Persist (you can also store entropy directly if you prefer)
+    if layer!=-1:
+        storage[key][layer].append(branching_factor)  # [batch]
+    if layer==-1:
+        storage[key].append(branching_factor)  # [batch]
+
+
+def patch_pattern(pattern, hook, storage, key, layer):
+    """
+    pattern: [batch, heads, seq_q, seq_k] – attention probabilities
+    steering: same shape or broadcastable (optional)
+    scale: float scalar
+    storage: dict with 'before' and 'after' lists
+    """
+
+    storage[key][layer] = pattern[:, :, -1, :].clone()
+    return pattern
+
+def kl_each_token_topN(probs, ref_probs, N=1000):
+    eps = 1e-9
+    probs = probs.clamp(min=eps)
+    ref = ref_probs.clamp(min=eps)
+
+    top_vals, top_idx = probs.topk(N, dim=-1)       # [B,T,N]
+    ref_top = ref.expand_as(probs).gather(-1, top_idx)  # [B,T,N]
+
+    kl = (top_vals * (top_vals.log() - ref_top.log())).sum(dim=-1)
+    return kl
+
+
+def bf_process(storage):
+    bf = torch.stack(storage)
+    bf = torch.chunk(bf, 4, dim=0)
+    bf = torch.stack([ent.T for ent in bf], dim=0)
+    bf = bf.reshape(256, 30)
+    return bf
+
+def kl_process(storage, model, steered_probs):
+    dist = torch.stack(storage)
+    dist = torch.chunk(dist, 4, dim=0)
+    dist = torch.stack(dist, dim=0)
+    dist = dist.permute(0, 2, 1, 3)
+    dist = dist.reshape(256, 30, 2304)
+    dist_logits = model.unembed(dist)  
+    dist_probs = torch.softmax(dist_logits, dim=-1) 
+    difference = kl_each_token_topN(dist_probs, steered_probs)
+    return difference
+
 def steer_model_rotation(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
+
     toks = model.to_tokens(text, prepend_bos=True)
     toks = toks.expand(batch_size, -1)
     all_gen = []
+    n_layers = 14 #getattr(getattr(model, "cfg", None), "n_layers", None)
+    # Storage for logits and entropy
+    storage = {'before':[], 'after':[], 'entropy_last':[], 
+               'bf': {L: [] for L in range(n_layers-1, n_layers)}, 
+               'pattern':{L: [] for L in range(n_layers-1, n_layers)}}
+    
+
+    hooks = [
+        (hp, partial(patch_resid_rotation, steering=steer, scale=scale, storage=storage)),
+        ("ln_final.hook_normalized", partial(capture_bf, unembed=model.unembed, storage=storage, layer=-1, key='entropy_last')),  # last hidden state, 
+    ]
+
+    for L in range(n_layers-1, n_layers):
+        hooks.append((f"blocks.{L}.hook_resid_post",
+                          partial(capture_bf, unembed=model.unembed, storage=storage, key='bf', layer=L)))
+        hooks.append((f"blocks.{L}.attn.hook_pattern",
+                          partial(patch_pattern, storage=storage, key='pattern', layer=L)))
+
+    temp_patterns = {L:[] for L in range(n_layers-1, n_layers)}
     for _ in range(0, n_samples, batch_size):
-        with model.hooks([(hp, partial(patch_resid_rotation, steering=steer, scale=scale, storage=[]))]):
+        with model.hooks(hooks):
             gen_toks = model.generate(
                 toks,
                 max_new_tokens=30,
@@ -110,14 +210,58 @@ def steer_model_rotation(model, steer, hp, text, scale=5, batch_size=64, n_sampl
                 verbose=False,
             )
             all_gen.extend(model.to_string(gen_toks))
-    return all_gen, []
+            for L in range(n_layers-1, n_layers):
+                temp_patterns[L].append(storage['pattern'][L])
+    
+    for L in range(n_layers-1, n_layers):
+        temp_patterns[L] = torch.cat(temp_patterns[L], dim=0)
+    
+    
+    steered_logits = model.unembed(steer.unsqueeze(0))  
+    steered_probs = torch.softmax(steered_logits, dim=-1) 
+
+    before_difference = kl_process(storage['before'], model, steered_probs)
+
+    after_difference = kl_process(storage['after'], model, steered_probs)
+    
+    entropy_last = bf_process(storage['entropy_last'])
+    storage['bf'] = [bf_process(storage['bf'][L]) for L in range(n_layers-1, n_layers)]
+    
+    storage['before'] = [t.squeeze().tolist() for t in before_difference]
+    storage['after'] = [t.squeeze().tolist() for t in after_difference]
+    storage['entropy_last'] = [t.squeeze().tolist() for t in entropy_last]
+    for L in range(n_layers-1, n_layers): 
+        storage['bf'][L] = [t.squeeze().tolist() for t in storage['bf'][L]]
+        storage['pattern'][L] = [t.squeeze().tolist() for t in temp_patterns[L]]
+    
+    return all_gen, storage
 
 def steer_model_addition(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
+
     toks = model.to_tokens(text, prepend_bos=True)
     toks = toks.expand(batch_size, -1)
     all_gen = []
+    n_layers = 14 #getattr(getattr(model, "cfg", None), "n_layers", None)
+    # Storage for logits and entropy
+    storage = {'before':[], 'after':[], 'entropy_last':[], 
+               'bf': {L: [] for L in range(n_layers-1, n_layers)}, 
+               'pattern':{L: [] for L in range(n_layers-1, n_layers)}}
+    
+
+    hooks = [
+        (hp, partial(patch_resid_addition, steering=steer, scale=scale, storage=storage)),
+        ("ln_final.hook_normalized", partial(capture_bf, unembed=model.unembed, storage=storage, layer=-1, key='entropy_last')),  # last hidden state, 
+    ]
+
+    for L in range(n_layers-1, n_layers):
+        hooks.append((f"blocks.{L}.hook_resid_post",
+                          partial(capture_bf, unembed=model.unembed, storage=storage, key='bf', layer=L)))
+        hooks.append((f"blocks.{L}.attn.hook_pattern",
+                          partial(patch_pattern, storage=storage, key='pattern', layer=L)))
+
+    temp_patterns = {L:[] for L in range(n_layers-1, n_layers)}
     for _ in range(0, n_samples, batch_size):
-        with model.hooks([(hp, partial(patch_resid_addition, steering=steer, scale=scale, storage=[]))]):
+        with model.hooks(hooks):
             gen_toks = model.generate(
                 toks,
                 max_new_tokens=30,
@@ -127,7 +271,67 @@ def steer_model_addition(model, steer, hp, text, scale=5, batch_size=64, n_sampl
                 verbose=False,
             )
             all_gen.extend(model.to_string(gen_toks))
-    return all_gen, []
+            for L in range(n_layers-1, n_layers):
+                temp_patterns[L].append(storage['pattern'][L])
+    
+    for L in range(n_layers-1, n_layers):
+        temp_patterns[L] = torch.cat(temp_patterns[L], dim=0)
+    
+    
+    steered_logits = model.unembed(steer.unsqueeze(0))  
+    steered_probs = torch.softmax(steered_logits, dim=-1) 
+
+    before_difference = kl_process(storage['before'], model, steered_probs)
+
+    after_difference = kl_process(storage['after'], model, steered_probs)
+    
+    entropy_last = bf_process(storage['entropy_last'])
+    storage['bf'] = [bf_process(storage['bf'][L]) for L in range(n_layers-1, n_layers)]
+    
+    storage['before'] = [t.squeeze().tolist() for t in before_difference]
+    storage['after'] = [t.squeeze().tolist() for t in after_difference]
+    storage['entropy_last'] = [t.squeeze().tolist() for t in entropy_last]
+    for L in range(n_layers-1, n_layers): 
+        storage['bf'][L] = [t.squeeze().tolist() for t in storage['bf'][L]]
+        storage['pattern'][L] = [t.squeeze().tolist() for t in temp_patterns[L]]
+    
+    return all_gen, storage
+
+
+
+# def steer_model_rotation(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
+#     toks = model.to_tokens(text, prepend_bos=True)
+#     toks = toks.expand(batch_size, -1)
+#     all_gen = []
+#     for _ in range(0, n_samples, batch_size):
+#         with model.hooks([(hp, partial(patch_resid_rotation, steering=steer, scale=scale, storage=[]))]):
+#             gen_toks = model.generate(
+#                 toks,
+#                 max_new_tokens=30,
+#                 use_past_kv_cache=True,
+#                 top_k=50,
+#                 top_p=0.3,
+#                 verbose=False,
+#             )
+#             all_gen.extend(model.to_string(gen_toks))
+#     return all_gen, []
+
+# def steer_model_addition(model, steer, hp, text, scale=5, batch_size=64, n_samples=128):
+#     toks = model.to_tokens(text, prepend_bos=True)
+#     toks = toks.expand(batch_size, -1)
+#     all_gen = []
+#     for _ in range(0, n_samples, batch_size):
+#         with model.hooks([(hp, partial(patch_resid_addition, steering=steer, scale=scale, storage=[]))]):
+#             gen_toks = model.generate(
+#                 toks,
+#                 max_new_tokens=30,
+#                 use_past_kv_cache=True,
+#                 top_k=50,
+#                 top_p=0.3,
+#                 verbose=False,
+#             )
+#             all_gen.extend(model.to_string(gen_toks))
+#     return all_gen, []
 
 
 PROMPTS = [
