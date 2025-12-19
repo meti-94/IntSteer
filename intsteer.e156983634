@@ -1,0 +1,60 @@
+The tokenizer you are loading from '/g/data/hn98/Mehdi/hf_home/hub/gemma-2-9b' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+Loading checkpoint shards:   0%|          | 0/8 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 8/8 [00:00<00:00, 213.04it/s]
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constant Setting center_unembed=False instead.
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:09<02:25,  9.72s/it] 12%|█▎        | 2/16 [00:19<02:15,  9.67s/it] 19%|█▉        | 3/16 [00:28<02:05,  9.65s/it] 25%|██▌       | 4/16 [00:38<01:55,  9.64s/it] 31%|███▏      | 5/16 [00:48<01:45,  9.64s/it] 38%|███▊      | 6/16 [00:57<01:36,  9.64s/it] 44%|████▍     | 7/16 [01:07<01:26,  9.64s/it] 50%|█████     | 8/16 [01:17<01:17,  9.63s/it] 56%|█████▋    | 9/16 [01:26<01:07,  9.63s/it] 62%|██████▎   | 10/16 [01:36<00:57,  9.63s/it] 69%|██████▉   | 11/16 [01:46<00:48,  9.63s/it] 75%|███████▌  | 12/16 [01:55<00:38,  9.63s/it] 81%|████████▏ | 13/16 [02:05<00:29,  9.69s/it] 88%|████████▊ | 14/16 [02:15<00:19,  9.67s/it] 94%|█████████▍| 15/16 [02:24<00:09,  9.66s/it]100%|██████████| 16/16 [02:34<00:00,  9.65s/it]100%|██████████| 16/16 [02:34<00:00,  9.65s/it]
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:09<02:24,  9.60s/it] 12%|█▎        | 2/16 [00:19<02:14,  9.60s/it] 19%|█▉        | 3/16 [00:28<02:04,  9.60s/it] 25%|██▌       | 4/16 [00:38<01:55,  9.60s/it] 31%|███▏      | 5/16 [00:47<01:45,  9.60s/it] 38%|███▊      | 6/16 [00:57<01:36,  9.60s/it] 44%|████▍     | 7/16 [01:07<01:26,  9.60s/it] 50%|█████     | 8/16 [01:16<01:16,  9.60s/it] 56%|█████▋    | 9/16 [01:26<01:07,  9.60s/it] 62%|██████▎   | 10/16 [01:35<00:57,  9.59s/it] 69%|██████▉   | 11/16 [01:45<00:47,  9.59s/it] 75%|███████▌  | 12/16 [01:55<00:38,  9.59s/it] 81%|████████▏ | 13/16 [02:04<00:28,  9.59s/it] 88%|████████▊ | 14/16 [02:14<00:19,  9.59s/it] 94%|█████████▍| 15/16 [02:23<00:09,  9.58s/it]100%|██████████| 16/16 [02:33<00:00,  9.58s/it]100%|██████████| 16/16 [02:33<00:00,  9.59s/it]
+Traceback (most recent call last):
+  File "/g/data/hn98/Mehdi/test/IntSteer/src/sae_ts/baselines/analysis.py", line 497, in <module>
+    result, graph_data = rotation_steer(model, steer, hp, path, method='ActSteer')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/g/data/hn98/Mehdi/test/IntSteer/src/sae_ts/baselines/analysis.py", line 314, in rotation_steer
+    json.dump(all_texts, f, indent=2)
+  File "/usr/lib64/python3.12/json/__init__.py", line 179, in dump
+    for chunk in iterable:
+                 ^^^^^^^^
+  File "/usr/lib64/python3.12/json/encoder.py", line 430, in _iterencode
+    yield from _iterencode_list(o, _current_indent_level)
+  File "/usr/lib64/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/usr/lib64/python3.12/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type Tensor is not JSON serializable
+The tokenizer you are loading from '/g/data/hn98/Mehdi/hf_home/hub/gemma-2-2b' with an incorrect regex pattern: https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503/discussions/84#69121093e8b480e709447d5e. This will lead to incorrect tokenization. You should set the `fix_mistral_regex=True` flag when loading this tokenizer to fix this issue.
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s]Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 144.58it/s]
+WARNING:root:You tried to specify center_unembed=True for a model using logit softcap, but this can't be done! Softcapping is not invariant upon adding a constant Setting center_unembed=False instead.
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:04<01:03,  4.25s/it] 12%|█▎        | 2/16 [00:08<00:58,  4.20s/it] 19%|█▉        | 3/16 [00:12<00:54,  4.19s/it] 25%|██▌       | 4/16 [00:16<00:50,  4.18s/it] 31%|███▏      | 5/16 [00:20<00:45,  4.17s/it] 38%|███▊      | 6/16 [00:25<00:41,  4.17s/it] 44%|████▍     | 7/16 [00:29<00:37,  4.17s/it] 50%|█████     | 8/16 [00:33<00:33,  4.17s/it] 56%|█████▋    | 9/16 [00:37<00:29,  4.17s/it] 62%|██████▎   | 10/16 [00:41<00:25,  4.17s/it] 69%|██████▉   | 11/16 [00:45<00:20,  4.17s/it] 75%|███████▌  | 12/16 [00:50<00:16,  4.17s/it] 81%|████████▏ | 13/16 [00:54<00:12,  4.17s/it] 88%|████████▊ | 14/16 [00:58<00:08,  4.17s/it] 94%|█████████▍| 15/16 [01:02<00:04,  4.17s/it]100%|██████████| 16/16 [01:06<00:00,  4.17s/it]100%|██████████| 16/16 [01:06<00:00,  4.17s/it]
+  0%|          | 0/16 [00:00<?, ?it/s]  6%|▋         | 1/16 [00:04<01:02,  4.19s/it] 12%|█▎        | 2/16 [00:08<00:58,  4.19s/it] 19%|█▉        | 3/16 [00:12<00:54,  4.19s/it] 25%|██▌       | 4/16 [00:16<00:50,  4.19s/it] 31%|███▏      | 5/16 [00:20<00:46,  4.19s/it] 38%|███▊      | 6/16 [00:25<00:41,  4.18s/it] 44%|████▍     | 7/16 [00:29<00:37,  4.18s/it] 50%|█████     | 8/16 [00:33<00:33,  4.18s/it] 56%|█████▋    | 9/16 [00:37<00:29,  4.18s/it] 62%|██████▎   | 10/16 [00:41<00:25,  4.18s/it] 69%|██████▉   | 11/16 [00:46<00:21,  4.23s/it] 75%|███████▌  | 12/16 [00:50<00:16,  4.21s/it] 81%|████████▏ | 13/16 [00:54<00:12,  4.20s/it] 88%|████████▊ | 14/16 [00:58<00:08,  4.19s/it] 94%|█████████▍| 15/16 [01:02<00:04,  4.19s/it]100%|██████████| 16/16 [01:07<00:00,  4.18s/it]100%|██████████| 16/16 [01:07<00:00,  4.19s/it]
+Traceback (most recent call last):
+  File "/g/data/hn98/Mehdi/test/IntSteer/src/sae_ts/baselines/analysis.py", line 497, in <module>
+    result, graph_data = rotation_steer(model, steer, hp, path, method='ActSteer')
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/g/data/hn98/Mehdi/test/IntSteer/src/sae_ts/baselines/analysis.py", line 314, in rotation_steer
+    json.dump(all_texts, f, indent=2)
+  File "/usr/lib64/python3.12/json/__init__.py", line 179, in dump
+    for chunk in iterable:
+                 ^^^^^^^^
+  File "/usr/lib64/python3.12/json/encoder.py", line 430, in _iterencode
+    yield from _iterencode_list(o, _current_indent_level)
+  File "/usr/lib64/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/usr/lib64/python3.12/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/usr/lib64/python3.12/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type Tensor is not JSON serializable

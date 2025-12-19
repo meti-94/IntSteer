@@ -169,7 +169,7 @@ def kl_process(storage, model, steered_probs):
     dist = torch.chunk(dist, 4, dim=0)
     dist = torch.stack(dist, dim=0)
     dist = dist.permute(0, 2, 1, 3)
-    dist = dist.reshape(256, 30, 2304)
+    dist = dist.reshape(256, 30, -1)
     dist_logits = model.unembed(dist)  
     dist_probs = torch.softmax(dist_logits, dim=-1) 
     difference = kl_each_token_topN(dist_probs, steered_probs)
@@ -231,7 +231,7 @@ def steer_model_rotation(model, steer, hp, text, scale=5, batch_size=64, n_sampl
     storage['after'] = [t.squeeze().tolist() for t in after_difference]
     storage['entropy_last'] = [t.squeeze().tolist() for t in entropy_last]
     for L in range(n_layers-1, n_layers): 
-        storage['bf'][L] = [t.squeeze().tolist() for t in storage['bf'][L]]
+        storage['bf'][0] = [t.squeeze().tolist() for t in storage['bf'][0]]
         storage['pattern'][L] = [t.squeeze().tolist() for t in temp_patterns[L]]
     
     return all_gen, storage
@@ -292,9 +292,8 @@ def steer_model_addition(model, steer, hp, text, scale=5, batch_size=64, n_sampl
     storage['after'] = [t.squeeze().tolist() for t in after_difference]
     storage['entropy_last'] = [t.squeeze().tolist() for t in entropy_last]
     for L in range(n_layers-1, n_layers): 
-        storage['bf'][L] = [t.squeeze().tolist() for t in storage['bf'][L]]
+        storage['bf'][0] = [t.squeeze().tolist() for t in storage['bf'][0]]
         storage['pattern'][L] = [t.squeeze().tolist() for t in temp_patterns[L]]
-    
     return all_gen, storage
 
 
@@ -515,3 +514,4 @@ class LinearAdapter(nn.Module):
         W_pinv = torch.linalg.pinv(self.W)
         x_optimal = (y.to(self.W.device) - self.b) @ W_pinv
         return x_optimal.to(y_dev)
+

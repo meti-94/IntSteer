@@ -25,7 +25,9 @@ def patch_resid(resid, hook, steering, scale=1):
 
 
 def patch_resid_addition(resid, hook, steering, scale=1, storage=None):
+    storage['before'].append(resid[:, -1, :].clone())
     resid[:, :, :] = resid[:, :, :] + steering * scale
+    storage['after'].append(resid[:, -1, :].clone())
     return resid
 
 def patch_resid_rotation(resid, hook, steering, scale, storage=None):
@@ -42,7 +44,7 @@ def patch_resid_rotation(resid, hook, steering, scale, storage=None):
     eps = 1e-8
     device = resid.device
     dtype = resid.dtype
-
+    storage['before'].append(resid[:, -1, :].clone())
     # Prepare steering to match resid's shape
     y = steering.to(device=device, dtype=dtype)
     while y.dim() < resid.dim():
@@ -93,5 +95,7 @@ def patch_resid_rotation(resid, hook, steering, scale, storage=None):
 
     # In-place update
     resid[:, :, :] = z
+    storage['after'].append(resid[:, -1, :].clone())
     return resid
+
 

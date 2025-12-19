@@ -1,0 +1,22 @@
+Job 156981614.gadi-pbs on gadi-gpu-h200-0004.gadi.nci.org.au started at Thu Dec 18 18:12:42 AEDT 2025
+Loaded pretrained model google/gemma-2-9b into HookedTransformer
+steer_cfgs/gemma2-9b/anger
+Activation Addition Steering
+Loaded pretrained model google/gemma-2-2b into HookedTransformer
+steer_cfgs/gemma2/anger
+Activation Addition Steering
+
+======================================================================================
+                  Resource Usage on 2025-12-18 18:14:49:
+   Job Id:             156981614.gadi-pbs
+   Project:            hn98
+   Exit Status:        1
+   Service Units:      3.12
+   NCPUs Requested:    12                     NCPUs Used: 12              
+                                           CPU Time Used: 00:01:52        
+   Memory Requested:   80.0GB                Memory Used: 42.0GB          
+   NGPUs Requested:    1                 GPU Utilisation: 32%             
+                                         GPU Memory Used: 78.29GB         
+   Walltime requested: 05:00:00            Walltime Used: 00:02:05        
+   JobFS requested:    100.0GB                JobFS used: 4.86KB          
+======================================================================================
